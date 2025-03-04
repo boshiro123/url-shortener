@@ -36,7 +36,6 @@ func main() {
 	}
 
 	log.Info("Storage initialized", slog.String("path", cfg.StoragePath))
-
 	_ = storage
 
 	// TODO: init router: chi, "chi render"
