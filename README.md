@@ -1,0 +1,1 @@
+-[x] Глянуть slogpretty.go
