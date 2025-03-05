@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"urlshortener/internal/config"
+	"urlshortener/internal/http-server/handlers/url/save"
 	"urlshortener/internal/lib/logger/handlers/slogpretty"
 	"urlshortener/internal/lib/logger/sl"
 	"urlshortener/internal/storage/sqlite"
@@ -40,6 +42,7 @@ func main() {
 	}
 
 	log.Info("Storage initialized", slog.String("path", cfg.StoragePath))
+
 	_ = storage
 
 	// TODO: init router: chi, "chi render"
@@ -53,6 +56,22 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	router.Post("/url", save.New(log, storage))
+
+	log.Info("Server starting", slog.String("address", cfg.HTTPServer.Address))
+
+	srv := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("Failed to start server", sl.Err(err))
+	}
+	log.Error("Server stopped")
 	// TODO: run server:
 }
 
